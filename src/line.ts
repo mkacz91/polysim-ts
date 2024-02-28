@@ -19,76 +19,72 @@
 // **Note:** Different implicit definitions of the same line may yield different
 // coordinate systems.
 
+import { PVector, abs } from "./math";
+
 // Line Class
 // ----------
 //
 // Represents an implicit line definition and provides routines to work with
 // its coordinate system
-public static class Line
-{
-  public float a;
-  public float b;
-  public float c;
-
+export class Line {
   // Creates line with given coefficients
-  public Line(float a, float b, float c) {
-    this.a = a;
-    this.b = b;
-    this.c = c;
-  }
+  constructor(public a: number, public b: number, public c: number) { }
 
   // Gets the line origin defined as the projection of the (0, 0) cartesian
   // point onto the line. This is the origin of this line's coordinate system.
-  public PVector origin() {
-    float c1 = -c / (a * a + b * b);
+  origin(): PVector {
+    const a = this.a, b = this.b, c = this.c;
+    const c1 = -c / (a * a + b * b);
     return new PVector(a * c1, b * c1);
   }
 
   // Gets the (`-b`, `a`) vector. This is the base vector for the _s_ line
   // coordinate.
-  public PVector tangent() {
-    return new PVector(-b, a);
+  tangent(): PVector {
+    return new PVector(-this.b, this.a);
   }
 
   // Gets the (`a`, `b`) vector. This is the base vector for the _t_ line
   // coordinate.
-  public PVector normal() {
-    return new PVector(a, b);
+  normal(): PVector {
+    return new PVector(this.a, this.b);
   }
 
   // Converts point from (_x_, _y_) cartesian coordinates to (s, t) line
   // coordinates
-  public LVector map(PVector p) {
-    float c1 = a * a + b * b;
-    float t = (a * p.x + b * p.y + c) / c1;
-    float c2 = c / c1 - t;
-    float s = abs(a) > abs(b) ? (p.y + b * c2) / a : -(p.x + a * c2) / b;
+  map(p: PVector): LVector {
+    const a = this.a, b = this.b, c = this.c;
+    const c1 = a * a + b * b;
+    const t = (a * p.x + b * p.y + c) / c1;
+    const c2 = c / c1 - t;
+    const s = abs(a) > abs(b) ? (p.y + b * c2) / a : -(p.x + a * c2) / b;
     return new LVector(s, t);
   }
 
   // Converts point from (_s_, _t_) line coordinates to cartesian (_x_, _y_)
   // coordinates
-  public PVector unmap(LVector l) {
-    return unmap(l.s, l.t);
+  unmap(l: LVector): PVector {
+    return this.unmapc(l.s, l.t);
   }
 
   // Converts point from (_s_, _t_) line coordinates to cartesian (_x_, _y_)
   // coordinates
-  public PVector unmap(float s, float t) {
-    final float c1 = t - c / (a * a + b * b);
+  unmapc(s: number, t: number): PVector {
+    const a = this.a, b = this.b, c = this.c;
+    const c1 = t - c / (a * a + b * b);
     return new PVector(c1 * a - s * b, c1 * b + s * a);
   }
 
   // Converts point given in this line's coordinates to the coordinate
   // system of another line
-  public LVector remap(Line other, LVector l) {
-    return remap(other, l.s, l.t);
+  remap(other: Line, l: LVector): LVector {
+    return this.remapc(other, l.s, l.t);
   }
 
   // Converts point given in this line's coordinates to the coordinate
   // system of another line
-  public LVector remap(Line other, float s, float t) {
-    return map(other.unmap(s, t));
+  remapc(other: Line, s: number, t: number): LVector {
+    return this.map(other.unmapc(s, t));
   }
 }
 
@@ -96,14 +92,7 @@ public static class Line
 // -------------
 //
 // Represents a point in line (_s_, _t_) coordinates
-public static class LVector
-{
-  public float s;
-  public float t;
-
+class LVector {
   // Creates new point with given coordinates
-  public LVector(float s, float t) {
-    this.s = s;
-    this.t = t;
-  }
+  public constructor(public s: number, public t: number) { }
 }
