@@ -71,7 +71,7 @@ export class Path implements Iterable<PVector>
 //
 // Path modification callbacks. Client must implement this interface to be
 // able to be informed about modifications of a `Path`
-interface IPathListener {
+export interface IPathListener {
   // Invoked when point `p` is added to the end of path `sender`
   onAddPoint(sender: Path, p: PVector): void;
 
