@@ -1,68 +1,68 @@
 // Polygonal Line Path
 // ===================
 
+import { PVector } from "./math";
+
 // Path Class
 // ----------
 //
 // Represents a polygonal line path. Informs registered listeners about
 // any changes.
-static class Path implements Iterable<PVector>
+export class Path implements Iterable<PVector>
 {
   // List of path points
-  private ArrayList<PVector> points = new ArrayList<PVector>();
+  private readonly points: PVector[] = [];
 
   // List of registered listeners
-  private ArrayList<IPathListener> listeners = new ArrayList<IPathListener>();
+  private readonly listeners: IPathListener[] = [];
 
   // Gets the number of points in the path
-  public int length() {
-    return points.size();
+  length(): number {
+    return this.points.length;
   }
 
   // True if this path has no points
-  public boolean isEmpty() {
-    return points.size() == 0;
+  isEmpty(): boolean {
+    return this.points.length === 0;
   }
 
   // Gets the `i`th point
-  public PVector point(int i) {
-    return points.get(i);
+  point(i: number): PVector {
+    return this.points[i];
   }
 
   // Gets the last point
-  public PVector lastPoint() {
-    return points.get(points.size() - 1);
+  lastPoint(): PVector {
+    return this.points[this.points.length - 1];
   }
 
   // Adds new point at the end of the path
-  public void addPoint(PVector p) {
-    points.add(p);
-    for (IPathListener listener : listeners)
-      listener.onAddPoint(this, p);
+  addPoint(p: PVector): void {
+    this.points.push(p);
+    this.listeners.forEach(listener => listener.onAddPoint(this, p));
   }
 
   // Adds new point at the end of the path
-  public void addPoint(float x, float y) {
-    addPoint(new PVector(x, y));
+  addPointc(x: number, y: number): void {
+    this.addPoint(new PVector(x, y));
   }
 
   // Removes all points from the path
-  public void clear() {
-    points.clear();
-    for (IPathListener listener : listeners)
-      listener.onClear(this);
+  clear(): void {
+    this.points.length = 0;
+    this.listeners.forEach(listener => listener.onClear(this));
   }
 
   // Registers new listener. It will from now on be informed about any
   // modifications to this path. The listeners will be informed in the same
   // order they were registered.
-  public void addListener(IPathListener listener) {
-    listeners.add(listener);
+  addListener(listener: IPathListener): void {
+    this.listeners.push(listener);
   }
 
   // Gets the iterator over all points
-  public Iterator<PVector> iterator() {
-    return points.iterator();
+  [Symbol.iterator](): Iterator<PVector> {
+    return this.points[Symbol.iterator]();
   }
 }
 
@@ -71,11 +71,10 @@ static class Path implements Iterable<PVector>
 //
 // Path modification callbacks. Client must implement this interface to be
 // able to be informed about modifications of a `Path`
-interface IPathListener
-{
+interface IPathListener {
   // Invoked when point `p` is added to the end of path `sender`
-  void onAddPoint(Path sender, PVector p);
+  onAddPoint(sender: Path, p: PVector): void;
 
   // Invoked when `sender` is cleared
-  void onClear(Path sender);
+  onClear(sender: Path): void;
 }
