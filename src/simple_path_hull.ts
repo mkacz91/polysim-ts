@@ -11,12 +11,14 @@ import { Geometry, PVector } from "./math";
 // Node of the doubly linked list that describes the convex hull polygon.
 // Holds the hull point position and provides acces to the next and previous
 // nodes in CCW order.
-type Node = {
+export type SimplePathHullNode = {
   readonly pos: PVector,
   // Previous node in CCW order
-  prev: Node,
+  prev: SimplePathHullNode,
   // Next node in CCW order
-  next: Node,
+  next: SimplePathHullNode,
+  // True if the node is part of the hull.
+  isValid: boolean,
 };
 
 // SimplePathHull Class
@@ -29,8 +31,10 @@ export class SimplePathHull {
 
   // Creates a hull node with given position and neighbours. Automatically
   // alters the pointers of adjecent nodes.
-  static makeNode(pos: PVector, prev?: Node, next?: Node): Node {
-    const node = { pos } as Node;
+  static makeNode(
+    pos: PVector, prev?: SimplePathHullNode, next?: SimplePathHullNode,
+  ): SimplePathHullNode {
+    const node = { pos, isValid: true } as SimplePathHullNode;
     node.prev = prev ?? node;
     node.next = next ?? node;
     node.prev.next = node.next.prev = node;
@@ -38,7 +42,7 @@ export class SimplePathHull {
   }
 
   // First node of the convex hull, or `undefined` if the hull is empty
-  private first?: Node;
+  private first?: SimplePathHullNode;
 
   // Number of points making up the hull
   private _size = 0;
@@ -59,7 +63,7 @@ export class SimplePathHull {
   // ignored.
   // Returns the newly created node if the point was accepted, and `null`
   // otherwise.
-  public offer(p: PVector): void {
+  public offer(p: PVector): SimplePathHullNode | undefined {
     if (this._size >= 3) {
       // In typical case with at least 3 hull points we seek tangents by skipping
       // all edges that become interior after adding `p` to the hull. Because
@@ -79,6 +83,7 @@ export class SimplePathHull {
       if (n0 != n1) {
         let n = n0.next;
         while (n != n1) {
+          n.isValid = false;
           n = n.next;
           --this._size;
         }
@@ -99,6 +104,7 @@ export class SimplePathHull {
       } else if (s > 0) {
         this.first = SimplePathHull.makeNode(p, first.prev, first);
       } else {
+        first.isValid = false;
         this.first = SimplePathHull.makeNode(p, first.prev, first.next);
         --this._size;
       }
@@ -106,6 +112,9 @@ export class SimplePathHull {
 
     if (this.first?.pos === p) {
       ++this._size;
+      return this.first;
+    } else {
+      return undefined;
     }
   }
 }

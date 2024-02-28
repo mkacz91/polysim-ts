@@ -24,6 +24,11 @@ export class PVector {
     return new PVector(a.x - b.x, a.y - b.y);
   }
 
+  // Computes the _dot product_ of two vectors.
+  static dot(u: PVector, v: PVector): number {
+    return u.x * v.x + u.y * v.y;
+  }
+
   // Computes the _per product_ (aka. _cross product_) of two vectors
   static per(u: PVector, v: PVector): number {
     return u.x * v.y - v.x * u.y;

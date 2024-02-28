@@ -60,82 +60,49 @@
 // step is pessimistically linear in time, but the practical complexity is much
 // better.
 
+import { Line } from "./line";
+import { LineFitter } from "./line_fitter";
+import { Geometry, PVector, max, min } from "./math";
+import { IPathListener, Path } from "./path";
+import { SimplePathHull, SimplePathHullNode } from "./simple_path_hull";
+
 // PathSimplifier Class
 // ----------------------
 //
 // Maintains a simplified version of path. Can be attached to a `Path` object
 // as a listener and then adjusts the simplified path online on any
 // modification.
-static class PathSimplifier implements IPathListener
-{
-  // Additional information stored for each point of the original path
-  public static final class PointTag
-  {
-    // Distance to the starting point in the admissible segment graph
-    public final int dist;
-
-    // Index of the next vertex along the shortest path in the admissible
-    // segment graph
-    public final int next;
-
-    // Determines whether the segment starting in this point takes part in an
-    // intersection with another non-adjecent segment later in the path.
-    public boolean cut;
-
-    public PointTag(int dist, int next) {
-      this.dist = dist;
-      this.next = next;
-      this.cut = false;
-    }
-  }
-
+export class PathSimplifier implements IPathListener {
   // The original path
-  private final Path path;
+  private path: Path;
 
   // Length of the path being simplified. Normally this should be equivalent to
   // `path.length()` but in the initial steps, when starting with a non empty
   // path, it may be smaller, in order to artificially simulate the construction
   // process.
-  private int pathLength;
+  private pathLength = 0;
 
   // `LineFitter` to retrieve information about optimal linear approximation of
   // selected path segments. It is registered as listener to `path` before this
   // `PathSimplifier`, so when we receive a path change callback, the fitter can
   // be assumed to already be in the newest state.
-  public final LineFitter fitter;
+  readonly fitter: LineFitter;
 
   // Additional information stored for the points of simplified path. The
   // indexing of `tags` is identical to that of `path`'s.
-  private final List<PointTag> tags = new ArrayList<PointTag>();
+  private readonly tags: PointTag[] = [];
 
   // The maximal allowed squared distance between original path points and the
   // simplified path.
-  private final float thresholdSq;
-
-  // Possible events that may occur during addmisibility checking of segment
-  // `ij` during `onAddPoint()`. Used for visualization purposes and
-  // debugging.
-  public enum Event
-  {
-    // The segment obeys all rules from 1 to 4
-    ACCEPT,
-    // Point `i` takes part in an intesection (rule 1 violated)
-    CUT,
-    // The distance to optimal line exceeds threshold (rule 2 violated)
-    THRESHOLD,
-    // Point `i` is not a pioneer (rule 3 violated)
-    PIONEER_WEAK,
-    // Point `j` is not a pioneer (rule 4 violated)
-    PIONEER_STRONG
-  }
+  private readonly thresholdSq;
 
   // List of events that occured for each considered `i` during last
   // `onAddPoint()`. Used for visualization purposes and debugging.
-  public final List<Event> trace = new ArrayList<Event>();
+  public readonly trace: Event[] = [];
 
   // Creates a simplifier attached to given path and using given threshold as
   // the maximal distance between the path points and the simplified path.
-  public PathSimplifier(Path path, float threshold) {
+  constructor(path: Path, threshold: number) {
     this.path = path;
     this.fitter = new LineFitter(path);
     this.thresholdSq = threshold * threshold;
@@ -144,38 +111,37 @@ static class PathSimplifier implements IPathListener
     // We artificially invoke the modification callbacks to simulate the
     // construction steps that have taken place before this simplifier was
     // created
-    onClear(path);
-    for (PVector p : path)
-      onAddPoint(path, p);
+    this.onClear(path);
+    for (const p of path) {
+      this.onAddPoint(path, p);
+    }
   }
 
-  @Override
-  public void onClear(Path sender) {
-    pathLength = 0;
-    tags.clear();
+  onClear(_: Path): void {
+    this.pathLength = 0;
+    this.tags.length = 0;
   }
 
-  @Override
-  public void onAddPoint(Path sender, PVector p) {
-    trace.clear();
-    trace.add(Event.ACCEPT);
-    int j = pathLength++;
-    PVector pj = p; // equivalent to path.point(j)
-    ErrorBox errorBox = new ErrorBox(fitter.fitLine(j, j), pj);
-    SimplePathHull hull = new SimplePathHull();
-    SimplePathHull.Node nj = hull.offer(pj);
+  onAddPoint(path: Path, p: PVector): void {
+    this.trace.length = 0;
+    this.trace.push('accept');
+    const j = this.pathLength++;
+    const pj = p; // equivalent to path.point(j)
+    const errorBox = new ErrorBox(this.fitter.fitLine(j, j), pj);
+    const hull = new SimplePathHull();
+    const nj = hull.offer(pj);
 
-    if (j == 0) {
-      tags.add(new PointTag(0, -1));
+    if (j === 0) {
+      this.tags.push({ dist: 0, next: -1, cut: false });
       return;
     }
 
-    int next = j - 1;
-    int dist = tags.get(next).dist;
+    let next = j - 1;
+    let dist = this.tags[next].dist;
 
-    for (int i = j - 1; i >= 0; --i) {
-      PVector pi = path.point(i);
-      PointTag ti = tags.get(i);
+    for (let i = j - 1; i >= 0; --i) {
+      const pi = path.point(i);
+      const ti = this.tags[i];
 
       // Stop if the segment starting at `i` intersects with any other segment along
       // the path to `j`, because `hull` only handles simple polylines.
@@ -185,16 +151,16 @@ static class PathSimplifier implements IPathListener
         Geometry.intersect(pi, path.point(i + 1), path.point(j - 1), pj)
       ) {
         ti.cut = true;
-        trace.add(Event.CUT);
+        this.trace.push('cut');
         break;
       }
 
       // Compute the optimal line approximation along with the maximal error
       // approximation and stop if the threshold is violated
-      Line line = fitter.fitLine(i, j);
+      const line = this.fitter.fitLine(i, j);
       errorBox.extend(line, pi);
-      if (errorBox.error() > thresholdSq) {
-        trace.add(Event.THRESHOLD);
+      if (errorBox.error() > this.thresholdSq) {
+        this.trace.push('threshold');
         break;
       }
 
@@ -202,67 +168,68 @@ static class PathSimplifier implements IPathListener
       // pioneers with respect to the optimal line. If the `j`th point is not
       // a pioneer, then it will never get back to being one, so we can break
       // right here.
-      SimplePathHull.Node ni = hull.offer(pi);
-      if (ni == null || !isPioneer(line, ni)) {
-        trace.add(Event.PIONEER_WEAK);
+      const ni = hull.offer(pi);
+      if (!ni || !PathSimplifier.isPioneer(line, ni)) {
+        this.trace.push('pioneer_weak');
         continue;
       }
-      if (!isPioneer(line, nj)) {
-        trace.add(Event.PIONEER_STRONG);
+      if (!PathSimplifier.isPioneer(line, nj!)) {
+        this.trace.push('pioneer_strong');
         break;
       }
 
-      trace.add(Event.ACCEPT);
+      this.trace.push('accept');
       if (ti.dist < dist) {
         next = i;
         dist = ti.dist;
       }
     }
 
-    tags.add(new PointTag(dist + 1, next));
+    this.tags.push({ dist: dist + 1, next, cut: false });
   }
 
   // For a given line an a convex hull point, determines whether that point is
   // a pioneer with respect to that line
-  private static boolean isPioneer(Line line, SimplePathHull.Node n) {
-    if (!n.isValid())
+  private static isPioneer(line: Line, n: SimplePathHullNode): boolean {
+    if (!n.isValid)
       return false;
     // For a hull point, it suffices to check whether the projections of its
     // adjecent hull points lie on the same side of its projection
-    PVector t = line.tangent();
-    float dp = PVector.dot(t, Geometry.span(n.pos(), n.prev().pos()));
-    float dn = PVector.dot(t, Geometry.span(n.pos(), n.next().pos()));
+    const t = line.tangent();
+    const dp = PVector.dot(t, PVector.span(n.pos, n.prev.pos));
+    const dn = PVector.dot(t, PVector.span(n.pos, n.next.pos));
     return dp * dn >= 0;
   }
 
   // Retrieves the simplified path
-  public Path getSimplified() {
-    if (pathLength <= 1)
-      return path;
+  getSimplified(): Path {
+    if (this.pathLength <= 1)
+      return this.path;
 
-    Path result = new Path();
+    const path = this.path, tags = this.tags, fitter = this.fitter;
+    const result = new Path();
 
     // We go along the shortest route and take the line approximations of the
     // subpaths corresponding to passed edges. We add intersectionf of
     // subsequent lines as points of the simplified path. The first and the last
     // point are projections of the first and last point of the original path
     // onto the corresponding lines.
-    int j = pathLength - 1;
-    int i = tags.get(j).next;
-    Line line = fitter.fitLine(i, j);
+    let j = this.pathLength - 1;
+    let i = tags[j].next;
+    let line = fitter.fitLine(i, j);
     result.addPoint(Geometry.project(path.point(j), line));
     while (i != 0) {
       j = i;
-      i = tags.get(j).next;
-      PVector pj = path.point(j);
-      Line prevLine = line;
+      i = tags[j].next;
+      const pj = path.point(j);
+      const prevLine = line;
       line = fitter.fitLine(i, j);
-      PVector p = Geometry.intersection(line, prevLine);
+      const p = Geometry.intersection(line, prevLine);
       // **TODO:** If the lines are parallel or some other crazy stuff, I can't
       // seem to find any good solution without violating the threshold
       // condition. Honestly, just adding `p`, only guarantees that we are within two
       // threshold of the original path.
-      if (isSingular(p) || Geometry.distSq(p, pj) > 4 * thresholdSq)
+      if (p.isSingular() || PVector.distSq(p, pj) > 4 * this.thresholdSq)
         result.addPoint(pj);
       else
         result.addPoint(p);
@@ -273,61 +240,93 @@ static class PathSimplifier implements IPathListener
   }
 }
 
+// Additional information stored for each point of the original path
+type PointTag = {
+  // Distance to the starting point in the admissible segment graph
+  dist: number;
+
+  // Index of the next vertex along the shortest path in the admissible
+  // segment graph
+  next: number;
+
+  // Determines whether the segment starting in this point takes part in an
+  // intersection with another non-adjecent segment later in the path.
+  cut: boolean;
+}
+
+// Possible events that may occur during addmisibility checking of segment
+// `ij` during `onAddPoint()`. Used for visualization purposes and
+// debugging.
+type Event
+  // The segment obeys all rules from 1 to 4
+  = 'accept'
+  // Point `i` takes part in an intesection (rule 1 violated)
+  | 'cut'
+  // The distance to optimal line exceeds threshold (rule 2 violated)
+  | 'threshold'
+  // Point `i` is not a pioneer (rule 3 violated)
+  | 'pioneer_weak'
+  // Point `j` is not a pioneer (rule 4 violated)
+  | 'pioneer_strong';
+
 // ErrorBox Class
 // --------------
 //
 // Manages a rectangle defined in line coordinates. It is used as a bound for
 // positions of points of a given set. For detailed explanation of line
 // coordinates, see: [`Line`](Line.html).
-public static final class ErrorBox
-{
+export class ErrorBox {
   // Line in which cooordinate system this rectangle is defined
-  private Line line;
+  private line: Line;
 
   // Minimum and maximum _s_ coordinate
-  private float s0, s1;
+  private s0: number;
+  private s1: number;
 
   // Minimum and maximum _t_ coordinate
-  private float t0, t1;
+  private t0: number;
+  private t1: number;
 
   // Creates a new error box in given line coordinate system, containing
   // a single point
-  public ErrorBox(Line line, PVector p) {
+  constructor(line: Line, p: PVector) {
     this.line = line;
-    LVector l = line.map(p);
+    const l = line.map(p);
     this.s0 = this.s1 = l.s;
     this.t0 = this.t1 = l.t;
   }
 
   // Adds new point to the bounded set, possibly enlarging the box, and
   // converts the representation to coordinate system of a new line.
-  public void extend(Line line, PVector p) {
-    LVector l = line.map(p);
-    LVector l00 = line.remap(this.line, s0, t0);
-    LVector l01 = line.remap(this.line, s0, t1);
-    LVector l10 = line.remap(this.line, s1, t0);
-    LVector l11 = line.remap(this.line, s1, t1);
+  extend(line: Line, p: PVector): void {
+    const l = line.map(p);
+    const l00 = line.remapc(this.line, this.s0, this.t0);
+    const l01 = line.remapc(this.line, this.s0, this.t1);
+    const l10 = line.remapc(this.line, this.s1, this.t0);
+    const l11 = line.remapc(this.line, this.s1, this.t1);
 
     this.line = line;
-    s0 = min(l.s, l00.s, l01.s, l10.s, l11.s);
-    s1 = max(l.s, l00.s, l01.s, l10.s, l11.s);
-    t0 = min(l.t, l00.t, l01.t, l10.t, l11.t);
-    t1 = max(l.t, l00.t, l01.t, l10.t, l11.t);
+    this.s0 = min(l.s, l00.s, l01.s, l10.s, l11.s);
+    this.s1 = max(l.s, l00.s, l01.s, l10.s, l11.s);
+    this.t0 = min(l.t, l00.t, l01.t, l10.t, l11.t);
+    this.t1 = max(l.t, l00.t, l01.t, l10.t, l11.t);
   }
 
   // Computes the largest possible value of the squared distance between a point
   // inside the rectangle, and the line defining its coordinate system
-  public float error() {
+  error(): number {
+    const t0 = this.t0, t1 = this.t1, line = this.line;
     return max(t0 * t0, t1 * t1) * (line.a * line.a + line.b * line.b);
   }
 
   // Gets the four rectangle vertices in cartesian coordinate system
-  public PVector[] getCartesianCorners() {
-    return new PVector[] {
-      line.unmap(s0, t0),
-      line.unmap(s0, t1),
-      line.unmap(s1, t1),
-      line.unmap(s1, t0)
-    };
+  getCartesianCorners(): PVector[] {
+    const line = this.line;
+    return [
+      line.unmapc(this.s0, this.t0),
+      line.unmapc(this.s0, this.t1),
+      line.unmapc(this.s1, this.t1),
+      line.unmapc(this.s1, this.t0),
+    ];
   }
 }
