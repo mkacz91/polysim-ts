@@ -12,6 +12,7 @@ body {
 body {
   display: flex;
   align-items: stretch;
+  background-color: #FFFEED;
 }
 
 #main-view {
@@ -48,7 +49,7 @@ body {
 }
 
 #side-panel {
-  border-left: 1px solid black;
+  margin-left: 1px;
   flex: none;
 }
 
@@ -62,4 +63,5 @@ canvas {
   display: block;
   width: 100%;
   height: 100%;
+  background-color: #E8DFCC;
 }

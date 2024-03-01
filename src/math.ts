@@ -11,6 +11,36 @@ export const max = Math.max;
 export class PVector {
   constructor(public x: number, public y: number) { }
 
+  add(u: PVector): this {
+    this.x += u.x;
+    this.y += u.y;
+    return this;
+  }
+
+  mult(s: number): this {
+    this.x *= s;
+    this.y *= s;
+    return this;
+  }
+
+  div(s: number): this {
+    this.x /= s;
+    this.y /= s;
+    return this;
+  }
+
+  normalize(): this {
+    this.mult(1 / this.mag());
+    if (this.isSingular()) {
+      this.x = 1, this.y = 0;
+    }
+    return this;
+  }
+
+  mag(): number {
+    return Math.sqrt(this.magSq());
+  }
+
   magSq(): number {
     return this.x * this.x + this.y * this.y;
   }
@@ -22,6 +52,10 @@ export class PVector {
 
   static sub(a: PVector, b: PVector): PVector {
     return new PVector(a.x - b.x, a.y - b.y);
+  }
+
+  static mult(u: PVector, s: number): PVector {
+    return new PVector(u.x * s, u.y * s);
   }
 
   // Computes the _dot product_ of two vectors.
@@ -125,13 +159,4 @@ export class Geometry {
 
     return swapResult ? new PVector(x2, x1) : new PVector(x1, x2);
   }
-}
-
-// Truncates value to given range
-function clamp(x: number, a: number, b: number): number {
-  if (x < a)
-    return a;
-  else if (b < x)
-    return b;
-  else return x;
 }

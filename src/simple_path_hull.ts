@@ -42,10 +42,15 @@ export class SimplePathHull {
   }
 
   // First node of the convex hull, or `undefined` if the hull is empty
-  private first?: SimplePathHullNode;
+  private _first?: SimplePathHullNode;
 
   // Number of points making up the hull
   private _size = 0;
+
+  // Gets the irst node of the convex hull, or `undefined` if the hull is empty
+  get first(): SimplePathHullNode | undefined {
+    return this._first;
+  }
 
   // Gets the number of points making up the hull
   size(): number {
@@ -87,12 +92,12 @@ export class SimplePathHull {
           n = n.next;
           --this._size;
         }
-        this.first = SimplePathHull.makeNode(p, n0, n1);
+        this._first = SimplePathHull.makeNode(p, n0, n1);
       }
     } else if (this._size == 0) {
-      this.first = SimplePathHull.makeNode(p);
+      this._first = SimplePathHull.makeNode(p);
     } else if (this._size == 1) {
-      this.first = SimplePathHull.makeNode(p, this.first, this.first);
+      this._first = SimplePathHull.makeNode(p, this.first, this.first);
     } else {
       const first = this.first!;
       // We have two points and are about to create a triangle. Make sure it
@@ -100,12 +105,12 @@ export class SimplePathHull {
       // to a 2-gon and simply detach `first`.
       const s = Geometry.side(first.pos, first.next.pos, p);
       if (s < 0) {
-        this.first = SimplePathHull.makeNode(p, first, first.next);
+        this._first = SimplePathHull.makeNode(p, first, first.next);
       } else if (s > 0) {
-        this.first = SimplePathHull.makeNode(p, first.prev, first);
+        this._first = SimplePathHull.makeNode(p, first.prev, first);
       } else {
         first.isValid = false;
-        this.first = SimplePathHull.makeNode(p, first.prev, first.next);
+        this._first = SimplePathHull.makeNode(p, first.prev, first.next);
         --this._size;
       }
     }

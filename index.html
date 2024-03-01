@@ -29,7 +29,7 @@
 					</tr>
 					<tr>
 						<td>Simplified length:</td>
-						<td id="simplified-length-stat"></td>
+						<td id="simple-length-stat"></td>
 					</tr>
 					<tr>
 						<td>Ratio length:</td>
@@ -48,8 +48,8 @@
 				<label for="show-original-checkbox">Show original path</label>
 			</div>
 			<div>
-				<input id="show-simplified-checkbox" type="checkbox" />
-				<label for="show-simplified-checkbox">Show simplified path</label>
+				<input id="show-simple-checkbox" type="checkbox" />
+				<label for="show-simple-checkbox">Show simplified path</label>
 			</div>
 			<div>
 				<label for="threshold-range">
@@ -69,8 +69,8 @@
 				<label for="show-hull-checkbox">Show convex hull</label>
 			</div>
 			<div>
-				<label for="trace-depth-range">Threshold:</label>
-				<input id="trace-depth-range" type="range" min="1" max="20" />
+				<label for="trace-depth-range">Trace depth:</label>
+				<input id="trace-depth-range" type="range" min="0" max="1" step="0.01" value="1" />
 			</div>
 		</div>
 		<div id="detail-view">
@@ -78,7 +78,7 @@
 		</div>
 	</div>
 
-	<script type="module" src="/src/hello.ts"></script>
+	<script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>
