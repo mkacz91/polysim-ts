@@ -2,14 +2,83 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Polysim</title>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Polysim</title>
 </head>
 
 <body>
-  <div id="app"></div>
-  <script type="module" src="/src/hello.ts"></script>
+	<div id="main-view">
+		<canvas id="main-canvas"></canvas>
+
+		<div class="overlay">
+			<div class="input-method">
+				<span>Input method:</span>
+				<button id="input-method-button"></button>
+			</div>
+
+			<div class="clear">
+				<button id="clear-button">Clear (C)</button>
+			</div>
+
+			<div class="stats">
+				<table>
+					<tr>
+						<td>Original length:</td>
+						<td id="original-length-stat"></td>
+					</tr>
+					<tr>
+						<td>Simplified length:</td>
+						<td id="simplified-length-stat"></td>
+					</tr>
+					<tr>
+						<td>Ratio length:</td>
+						<td id="ratio-stat"></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<div id="side-panel">
+		<div id="controls">
+			<h2>General</h2>
+			<div>
+				<input id="show-original-checkbox" type="checkbox" />
+				<label for="show-original-checkbox">Show original path</label>
+			</div>
+			<div>
+				<input id="show-simplified-checkbox" type="checkbox" />
+				<label for="show-simplified-checkbox">Show simplified path</label>
+			</div>
+			<div>
+				<label for="threshold-range">
+					<span>Threshold:</span>
+					<span id="threshold-range-value"></span>
+				</label>
+				<input id="threshold-range" type="range" min="1" max="20" />
+			</div>
+
+			<h2>Detail view</h2>
+			<div>
+				<input id="show-error-box-checkbox" type="checkbox" />
+				<label for="show-error-box-checkbox">Error box</label>
+			</div>
+			<div>
+				<input id="show-hull-checkbox" type="checkbox" />
+				<label for="show-hull-checkbox">Show convex hull</label>
+			</div>
+			<div>
+				<label for="trace-depth-range">Threshold:</label>
+				<input id="trace-depth-range" type="range" min="1" max="20" />
+			</div>
+		</div>
+		<div id="detail-view">
+			<canvas id="detail-canvas"></canvas>
+		</div>
+	</div>
+
+	<script type="module" src="/src/hello.ts"></script>
 </body>
 
 </html>

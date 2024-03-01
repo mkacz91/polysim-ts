@@ -1,3 +1,3 @@
 import './index.css'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `Hello World!`;
+//ocument.querySelector<HTMLDivElement>('#app')!.innerHTML = `Hello World!`;
