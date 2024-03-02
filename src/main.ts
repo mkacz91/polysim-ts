@@ -85,6 +85,7 @@ let threshold = NaN;
 
 const mainCanvas = document.getElementById('main-canvas') as HTMLCanvasElement;
 const mainView = document.getElementById('main-view') as HTMLDivElement;
+const mainOverlay = document.getElementById('main-overlay') as HTMLDivElement;
 const detailCanvas = document.getElementById('detail-canvas') as HTMLCanvasElement;
 const detailView = document.getElementById('detail-view') as HTMLDivElement;
 const onResize = () => {
@@ -163,11 +164,11 @@ function draw(time: DOMHighResTimeStamp): void {
 window.requestAnimationFrame(draw);
 
 function drawNormal(): void {
-  if (path.isEmpty())
-    return;
   const c = mainContext;
   c.lineJoin = 'round';
   c.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+  if (path.isEmpty())
+    return;
 
   c.strokeStyle = PATH_COLOR;
   c.lineWidth = PATH_WEIGHT;
@@ -181,12 +182,12 @@ function drawNormal(): void {
 }
 
 function drawDetail(): void {
-  if (path.isEmpty())
-    return;
   const c = detailContext;
   c.lineJoin = 'round';
   c.resetTransform();
   c.clearRect(0, 0, detailCanvas.width, detailCanvas.height);
+  if (path.isEmpty())
+    return;
 
   const size = detailCanvas.width;
   const offset = PVector.mult(detailOffset, DETAIL_FOCUS_AREA * size / 2);
@@ -272,16 +273,20 @@ function drawPath(c: CanvasRenderingContext2D, path: Path /*, float scale*/) {
   c.stroke();
 }
 
-mainView.addEventListener('mousedown', (e) => {
+mainOverlay.addEventListener('mousedown', (e) => {
+  if (e.target !== mainOverlay) {
+    return;
+  }
   if (inputMethod.innerText !== inputMethodPrecise)
     path.clear();
   path.addPointc(e.offsetX, e.offsetY);
   drawing = true;
 });
 
-mainView.addEventListener('mousemove', (e) => {
-  if (!drawing)
+mainOverlay.addEventListener('mousemove', (e) => {
+  if (e.target !== mainOverlay || !drawing) {
     return;
+  }
 
   if (
     inputMethod.innerText === inputMethodPrecise ||

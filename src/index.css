@@ -46,30 +46,30 @@ body {
   position: relative;
 }
 
-#main-view .overlay {
-  position: absolute;
-  top: var(--g);
-  left: var(--g);
-  right: var(--g);
-  bottom: var(--g);
-}
-
-#main-view.input-method {
+#main-overlay {
   position: absolute;
   left: 0;
   top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#main-view .input-method {
+  position: absolute;
+  left: var(--g);
+  top: var(--g);
 }
 
 #main-view .clear {
   position: absolute;
-  right: 0;
-  top: 0;
+  right: var(--g);
+  top: var(--g);
 }
 
 #main-view .stats {
   position: absolute;
-  left: 0;
-  bottom: 0;
+  left: var(--g);
+  bottom: var(--g);
 }
 
 #side-panel {
