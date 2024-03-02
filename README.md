@@ -1,6 +1,9 @@
 Polyline Simplification
 =======================
 
+**This is a fork of [the Processing version](https://github.com/mkacz91/polysim), rewritten in TypeScript. Documentation
+refers to the original.**
+
 This project demostrates an original algorithm for polygonal line
 simplification. Given a polygonal line, referred to as _path_, we produce
 a visually similar path, but with less vertices. The restruction criterion is
