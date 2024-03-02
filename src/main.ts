@@ -88,14 +88,15 @@ const mainView = document.getElementById('main-view') as HTMLDivElement;
 const mainOverlay = document.getElementById('main-overlay') as HTMLDivElement;
 const detailCanvas = document.getElementById('detail-canvas') as HTMLCanvasElement;
 const detailView = document.getElementById('detail-view') as HTMLDivElement;
-const onResize = () => {
-  mainCanvas.width = mainView.offsetWidth;
-  mainCanvas.height = mainView.offsetHeight;
-  detailCanvas.width = detailView.offsetWidth;
-  detailCanvas.height = detailView.offsetHeight;
+
+function syncCanvasSize(canvas: HTMLCanvasElement, view: HTMLDivElement) {
+  if (canvas.width !== view.offsetWidth) {
+    canvas.width = view.offsetWidth;
+  }
+  if (canvas.height !== view.offsetHeight) {
+    canvas.height = view.offsetHeight;
+  }
 }
-onResize();
-window.addEventListener('resize', onResize);
 
 path.addListener({
   onClear: (_) => {
@@ -166,6 +167,7 @@ window.requestAnimationFrame(draw);
 function drawNormal(): void {
   const c = mainContext;
   c.lineJoin = 'round';
+  syncCanvasSize(mainCanvas, mainView);
   c.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
   if (path.isEmpty())
     return;
@@ -185,6 +187,7 @@ function drawDetail(): void {
   const c = detailContext;
   c.lineJoin = 'round';
   c.resetTransform();
+  syncCanvasSize(detailCanvas, detailView);
   c.clearRect(0, 0, detailCanvas.width, detailCanvas.height);
   if (path.isEmpty())
     return;
