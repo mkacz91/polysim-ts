@@ -43,11 +43,11 @@
 	<div id="side-panel">
 		<div id="controls">
 			<h2>General</h2>
-			<div>
+			<div class="checkbox">
 				<input id="show-original-checkbox" type="checkbox" />
 				<label for="show-original-checkbox">Show original path</label>
 			</div>
-			<div>
+			<div class="checkbox">
 				<input id="show-simple-checkbox" type="checkbox" />
 				<label for="show-simple-checkbox">Show simplified path</label>
 			</div>
@@ -56,15 +56,15 @@
 					<span>Threshold:</span>
 					<span id="threshold-range-value"></span>
 				</label>
-				<input id="threshold-range" type="range" min="1" max="20" />
+				<input id="threshold-range" type="range" min="1" max="20" step="0.5" />
 			</div>
 
-			<h2>Detail view</h2>
-			<div>
+			<h2 class="g-top">Detail view</h2>
+			<div class="checkbox">
 				<input id="show-error-box-checkbox" type="checkbox" />
 				<label for="show-error-box-checkbox">Error box</label>
 			</div>
-			<div>
+			<div class="checkbox">
 				<input id="show-hull-checkbox" type="checkbox" />
 				<label for="show-hull-checkbox">Show convex hull</label>
 			</div>

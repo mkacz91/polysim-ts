@@ -1,5 +1,6 @@
 :root {
   font-family: sans-serif;
+  font-size: 16px;
 }
 
 html,
@@ -9,10 +10,33 @@ body {
   height: 100%;
 }
 
+h2 {
+  font-size: inherit;
+  font-weight: bold;
+  margin: 0;
+}
+
+.g-top {
+  margin-top: var(--g);
+}
+
 body {
   display: flex;
   align-items: stretch;
   background-color: #FFFEED;
+
+  --light-color: #EDEDED;
+  --middle-color: #A89C83;
+  --darker-color: #7A6F5F;
+  --dark-color: #4A4335;
+  --g: 15px;
+
+  color: var(--dark-color);
+  accent-color: var(--dark-color);
+
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #main-view {
@@ -24,10 +48,10 @@ body {
 
 #main-view .overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: var(--g);
+  left: var(--g);
+  right: var(--g);
+  bottom: var(--g);
 }
 
 #main-view.input-method {
@@ -49,19 +73,73 @@ body {
 }
 
 #side-panel {
-  margin-left: 1px;
   flex: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-width: 30vw;
+}
+
+#controls {
+  padding: var(--g);
+}
+
+#controls>*:not(:last-child) {
+  margin-bottom: calc(0.6 * var(--g));
 }
 
 #detail-view {
   flex: none;
-  width: 30vw;
-  height: 30vw;
+  width: 100%;
+  padding-top: 100%;
+  margin-left: 2px;
+}
+
+#main-view,
+#detail-view {
+  position: relative;
 }
 
 canvas {
   display: block;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
   background-color: #E8DFCC;
+}
+
+button {
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  background-color: var(--middle-color);
+  padding: 6px 12px;
+}
+
+button:hover {
+  background-color: var(--darker-color);
+}
+
+label[for="threshold-range"] {
+  display: flex;
+  justify-content: space-between;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 0;
+}
+
+input[type="checkbox"] {
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+  margin-right: 0.4em;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
 }
